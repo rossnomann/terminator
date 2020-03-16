@@ -22,7 +22,7 @@ Create `config.yaml`:
 ```
 token: 'YOUR-BOT-TOKEN-HERE'
 # webhook_address: '127.0.0.1:8080'  # optional webhook address to run server on
-# webhook_path: '/7260a3bfd7ba450b964fd486b9c9b84b'  # optional webhook path to get webhooks on; default - '/'
+# webhook_path: '/7260a3bfd7ba450b964fd486b9c9b84b'  # optional webhook path to get updates on; default - '/'
 # if webhook address is not set, bot will receive updates via longpolling
 chats:
   - chat_id: -1001234 # An integer ID of the target chat
