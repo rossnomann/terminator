@@ -101,12 +101,12 @@ impl Error for RenderQuestionError {
     }
 }
 
-pub(super) fn from_raw(raw: HashMap<Integer, RawChatConfig>) -> Result<HashMap<Integer, ChatConfig>, ChatConfigError> {
+pub(super) fn from_raw(raw: Vec<RawChatConfig>) -> Result<HashMap<Integer, ChatConfig>, ChatConfigError> {
     let tpl_parser = TemplateParserBuilder::with_liquid()
         .build()
         .map_err(ChatConfigError::CreateTemplateParser)?;
     let mut result = HashMap::with_capacity(raw.len());
-    for (chat_id, config) in raw {
+    for config in raw {
         let question = Arc::new(
             tpl_parser
                 .parse(&config.question)
@@ -131,7 +131,7 @@ pub(super) fn from_raw(raw: HashMap<Integer, RawChatConfig>) -> Result<HashMap<I
         let notification_forbidden =
             notification_forbidden.unwrap_or_else(|| String::from(DEFAULT_NOTIFICATION_FORBIDDEN));
         result.insert(
-            chat_id,
+            config.chat_id,
             ChatConfig {
                 question,
                 buttons,

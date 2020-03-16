@@ -1,7 +1,6 @@
 use serde::Deserialize;
 use serde_yaml::Error as YamlError;
 use std::{
-    collections::HashMap,
     error::Error,
     fmt,
     io::Error as IoError,
@@ -15,11 +14,12 @@ pub(super) struct RawConfig {
     pub(super) proxy: Option<String>,
     pub(super) webhook_address: Option<String>,
     pub(super) webhook_path: Option<String>,
-    pub(super) chats: HashMap<i64, RawChatConfig>,
+    pub(super) chats: Vec<RawChatConfig>,
 }
 
 #[derive(Deserialize)]
 pub(super) struct RawChatConfig {
+    pub(super) chat_id: i64,
     pub(super) question: String,
     pub(super) buttons: Vec<RawButtonConfig>,
     pub(super) ask_timeout: Option<u64>,
