@@ -41,7 +41,7 @@ chats:
 Run:
 
 ```
-$ ./telefeed config.yaml
+$ ./terminator config.yaml
 ```
 
 ## Changelog
