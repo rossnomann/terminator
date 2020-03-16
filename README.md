@@ -23,7 +23,7 @@ Create `config.yaml`:
 token: 'YOUR-BOT-TOKEN-HERE'
 chats:
   - chat_id: -1001234 # An integer ID of the target chat
-    question: '{{user}}, are you a bot?'  # Question to ask
+    question: '{{user}}, are you a bot?'  # Question to ask; {{user}} is a user mention.
     buttons:
       - label: 'Yes'
         is_right: true  # permissions allowed
