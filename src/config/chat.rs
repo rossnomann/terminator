@@ -1,4 +1,4 @@
-use crate::config::raw::RawChatConfig;
+use crate::config::raw::{RawAction, RawChatConfig};
 use carapax::types::{Integer, MentionError, ParseMode, User};
 use liquid::{value::liquid_value, Error as TemplateError, ParserBuilder as TemplateParserBuilder, Template};
 use std::{collections::HashMap, error::Error, fmt, sync::Arc, time::Duration};
@@ -15,6 +15,8 @@ pub struct ChatConfig {
     notification_right: String,
     notification_wrong: String,
     notification_forbidden: String,
+    action_wrong: Action,
+    action_timeout: Action,
 }
 
 impl ChatConfig {
@@ -55,6 +57,14 @@ impl ChatConfig {
     pub fn notification_forbidden(&self) -> &str {
         &self.notification_forbidden
     }
+
+    pub fn action_timeout(&self) -> Action {
+        self.action_timeout
+    }
+
+    pub fn action_wrong(&self) -> Action {
+        self.action_wrong
+    }
 }
 
 pub struct ButtonConfig {
@@ -69,6 +79,27 @@ impl ButtonConfig {
 
     pub fn is_right(&self) -> bool {
         self.is_right
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Action {
+    Kick,
+    Restrict,
+}
+
+impl Default for Action {
+    fn default() -> Self {
+        Action::Restrict
+    }
+}
+
+impl From<RawAction> for Action {
+    fn from(raw: RawAction) -> Self {
+        match raw {
+            RawAction::Kick => Action::Kick,
+            RawAction::Restrict => Action::Restrict,
+        }
     }
 }
 
@@ -130,6 +161,12 @@ pub(super) fn from_raw(raw: Vec<RawChatConfig>) -> Result<HashMap<Integer, ChatC
         let notification_wrong = notification_wrong.unwrap_or_else(|| String::from(DEFAULT_NOTIFICATION_WRONG));
         let notification_forbidden =
             notification_forbidden.unwrap_or_else(|| String::from(DEFAULT_NOTIFICATION_FORBIDDEN));
+        let (action_timeout, action_wrong) = config
+            .action
+            .map(|x| (x.timeout, x.wrong))
+            .unwrap_or_else(|| (None, None));
+        let action_timeout = action_timeout.map(Action::from).unwrap_or_else(Default::default);
+        let action_wrong = action_wrong.map(Action::from).unwrap_or_else(Default::default);
         result.insert(
             config.chat_id,
             ChatConfig {
@@ -140,6 +177,8 @@ pub(super) fn from_raw(raw: Vec<RawChatConfig>) -> Result<HashMap<Integer, ChatC
                 notification_right,
                 notification_wrong,
                 notification_forbidden,
+                action_timeout,
+                action_wrong,
             },
         );
     }

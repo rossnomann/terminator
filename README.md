@@ -39,6 +39,9 @@ chats:
     #   wrong: 'Good luck'  # notification when target user pressed wrong button
     #   forbidden: 'Forbidden'  # notification when other user pressed any button
     # question_timeout: 1  # timeout in seconds; question will be send after this timeout; 0 - default
+    # action:
+    #   wrong: kick  # action when user respond with wrong answer; 'kick' or 'restrict'; default - restrict
+    #   timeout: restrict  # action when user did not press any button; 'kick' or 'restrict'; default - restrict
 ```
 
 Run:
@@ -48,6 +51,10 @@ $ ./terminator config.yaml
 ```
 
 ## Changelog
+
+### 0.1.1 (21.03.2020)
+
+- Added `action.wrong` and `action.timeout` options.
 
 ### 0.1.0 (16.03.2020)
 

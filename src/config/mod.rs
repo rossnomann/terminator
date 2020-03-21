@@ -12,8 +12,8 @@ use self::{
 
 pub use self::{
     chat::{
-        ButtonConfig, ChatConfig, RenderQuestionError, DEFAULT_NOTIFICATION_FORBIDDEN, DEFAULT_NOTIFICATION_RIGHT,
-        DEFAULT_NOTIFICATION_WRONG,
+        Action, ButtonConfig, ChatConfig, RenderQuestionError, DEFAULT_NOTIFICATION_FORBIDDEN,
+        DEFAULT_NOTIFICATION_RIGHT, DEFAULT_NOTIFICATION_WRONG,
     },
     webhook_url::WebhookUrl,
 };

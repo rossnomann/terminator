@@ -1,11 +1,14 @@
 use crate::{
+    config::Action,
     context::{Context, Payload},
     handler::error::HandlerError,
 };
 use carapax::{
-    methods::{DeleteMessage, RestrictChatMember, SendMessage},
+    methods::{DeleteMessage, KickChatMember, RestrictChatMember, SendMessage},
     types::{InlineKeyboardButton, Integer, ParseMode, User},
+    Api,
 };
+use std::time::Duration;
 
 use tokio::{task, time::delay_for};
 
@@ -49,19 +52,59 @@ pub(super) async fn handle(context: &Context, chat_id: Integer, users: &[User]) 
                     .parse_mode(PARSE_MODE),
             )
             .await?;
-        let api = context.api.clone();
-        let response_timeout = config.response_timeout();
-        task::spawn(async move {
-            log::info!(
-                "Waiting for {} second(s) timeout before deleting question",
-                response_timeout.as_secs()
-            );
-            delay_for(response_timeout).await;
-            match api.execute(DeleteMessage::new(chat_id, message.id)).await {
-                Ok(_) => log::info!("Question #{} successfully deleted", message.id),
-                Err(err) => log::warn!("Failed to delete question: {}", err),
-            }
-        });
+        let timeout_handler = TimeoutHandler {
+            api: context.api.clone(),
+            timeout: config.response_timeout(),
+            chat_id,
+            message_id: message.id,
+            user_id,
+            action: config.action_timeout(),
+        };
+        task::spawn(timeout_handler.run());
     }
     Ok(())
+}
+
+struct TimeoutHandler {
+    api: Api,
+    timeout: Duration,
+    chat_id: Integer,
+    message_id: Integer,
+    user_id: Integer,
+    action: Action,
+}
+
+impl TimeoutHandler {
+    async fn run(self) {
+        log::info!(
+            "Waiting for {} second(s) timeout before deleting question",
+            self.timeout.as_secs()
+        );
+        delay_for(self.timeout).await;
+        match self
+            .api
+            .execute(DeleteMessage::new(self.chat_id, self.message_id))
+            .await
+        {
+            Ok(_) => {
+                // User not respond to question
+                log::info!("Question #{} successfully deleted", self.message_id);
+                if let Action::Kick = self.action {
+                    match self.api.execute(KickChatMember::new(self.chat_id, self.user_id)).await {
+                        Ok(_) => log::info!("Chat member kicked"),
+                        Err(err) => log::warn!(
+                            "Failed to kick chat member (chat_id={}, user_id={}): {}",
+                            self.chat_id,
+                            self.user_id,
+                            err
+                        ),
+                    }
+                }
+            }
+            Err(err) => {
+                // Possibly user respond to question
+                log::info!("Failed to delete question: {}", err)
+            }
+        }
+    }
 }

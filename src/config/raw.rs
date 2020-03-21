@@ -25,6 +25,7 @@ pub(super) struct RawChatConfig {
     pub(super) ask_timeout: Option<u64>,
     pub(super) response_timeout: u64,
     pub(super) notification: Option<RawNotificationConfig>,
+    pub(super) action: Option<RawActionConfig>,
 }
 
 #[derive(Deserialize)]
@@ -38,6 +39,19 @@ pub(super) struct RawNotificationConfig {
     pub(super) right: Option<String>,
     pub(super) wrong: Option<String>,
     pub(super) forbidden: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub(super) struct RawActionConfig {
+    pub(super) wrong: Option<RawAction>,
+    pub(super) timeout: Option<RawAction>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub(super) enum RawAction {
+    Kick,
+    Restrict,
 }
 
 impl RawConfig {

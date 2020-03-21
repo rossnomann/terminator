@@ -1,10 +1,10 @@
 use crate::{
-    config::DEFAULT_NOTIFICATION_FORBIDDEN,
+    config::{Action, DEFAULT_NOTIFICATION_FORBIDDEN},
     context::{Context, Payload},
 };
 use carapax::{
     handler,
-    methods::{AnswerCallbackQuery, DeleteMessage, RestrictChatMember},
+    methods::{AnswerCallbackQuery, DeleteMessage, KickChatMember, RestrictChatMember},
     types::CallbackQuery,
     ExecuteError,
 };
@@ -30,6 +30,12 @@ pub async fn handle(context: &Context, query: CallbackQuery) -> Result<(), Execu
                     .await?;
                 config.notification_right()
             } else {
+                if let Action::Kick = config.action_wrong() {
+                    context
+                        .api
+                        .execute(KickChatMember::new(data.chat_id, data.user_id))
+                        .await?;
+                }
                 config.notification_wrong()
             }
         } else {
