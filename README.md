@@ -11,7 +11,7 @@ See configuration example below for more information.
 Download binary:
 
 ```
-$ curl -L https://github.com/rossnomann/terminator/releases/download/0.1.0/terminator-0.1.0_x86_64-linux-gnu --output terminator
+$ curl -L https://github.com/rossnomann/terminator/releases/download/0.1.1/terminator-0.1.1_x86_64-linux-gnu --output terminator
 $ chmod +x terminator
 ```
 
