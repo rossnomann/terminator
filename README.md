@@ -52,6 +52,11 @@ $ ./terminator config.yaml
 
 ## Changelog
 
+### 0.1.2 (26.03.2020)
+
+- Fixed newline rendering.
+- Reply to `new_chat_member` message when sending a question.
+
 ### 0.1.1 (21.03.2020)
 
 - Added `action.wrong` and `action.timeout` options.
