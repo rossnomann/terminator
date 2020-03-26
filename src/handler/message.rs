@@ -16,7 +16,7 @@ pub async fn handle(context: &Context, message: Message) -> Result<(), HandlerEr
     );
     if let MessageData::NewChatMembers(ref users) = message.data {
         let chat_id = message.get_chat_id();
-        new_chat_member::handle(context, chat_id, users).await?;
+        new_chat_member::handle(context, chat_id, message.id, users).await?;
     }
     Ok(())
 }

@@ -14,7 +14,12 @@ use tokio::{task, time::delay_for};
 
 const PARSE_MODE: ParseMode = ParseMode::Html;
 
-pub(super) async fn handle(context: &Context, chat_id: Integer, users: &[User]) -> Result<(), HandlerError> {
+pub(super) async fn handle(
+    context: &Context,
+    chat_id: Integer,
+    message_id: Integer,
+    users: &[User],
+) -> Result<(), HandlerError> {
     let config = match context.chats.get(&chat_id) {
         Some(config) => config,
         None => {
@@ -32,7 +37,7 @@ pub(super) async fn handle(context: &Context, chat_id: Integer, users: &[User]) 
             .api
             .execute(RestrictChatMember::new(chat_id, user_id).restrict_all())
             .await?;
-        let question = config.render_question(&user, PARSE_MODE)?;
+        let question = config.render_question(&user, PARSE_MODE)?.replace("\\n", "\n");
         let mut buttons = Vec::new();
         for button in config.buttons() {
             buttons.push(InlineKeyboardButton::with_callback_data_struct(
@@ -49,6 +54,7 @@ pub(super) async fn handle(context: &Context, chat_id: Integer, users: &[User]) 
             .execute(
                 SendMessage::new(chat_id, question)
                     .reply_markup(vec![buttons])
+                    .reply_to_message_id(message_id)
                     .parse_mode(PARSE_MODE),
             )
             .await?;
