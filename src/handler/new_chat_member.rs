@@ -2,9 +2,11 @@ use crate::{
     config::Action,
     context::{Context, Payload},
     handler::error::HandlerError,
+    permissions::{obtain_chat_member_permissions, PERMISSIONS_SESSION_KEY},
 };
 use carapax::{
-    methods::{DeleteMessage, KickChatMember, RestrictChatMember, SendMessage},
+    methods::{DeleteMessage, GetChatMember, KickChatMember, RestrictChatMember, SendMessage},
+    session::SessionId,
     types::{InlineKeyboardButton, Integer, ParseMode, User},
     Api,
 };
@@ -33,6 +35,16 @@ pub(super) async fn handle(
     }
     for user in users {
         let user_id = user.id;
+        let chat_member = context.api.execute(GetChatMember::new(chat_id, user_id)).await?;
+        let permissions = obtain_chat_member_permissions(chat_member);
+        let mut session = context
+            .session_manager
+            .get_session(SessionId::new(chat_id, user_id))
+            .expect("Failed to get session"); // Should never panic as we provided SessionId
+        session
+            .set(PERMISSIONS_SESSION_KEY, &permissions)
+            .await
+            .map_err(HandlerError::SavePermissions)?;
         context
             .api
             .execute(RestrictChatMember::new(chat_id, user_id).restrict_all())

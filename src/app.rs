@@ -3,9 +3,17 @@ use crate::{
     context::Context,
     handler::{on_callback_query, on_message},
 };
-use carapax::{longpoll::LongPoll, webhook, Api, ApiError, Dispatcher};
+use carapax::{
+    longpoll::LongPoll,
+    session::{backend::fs::FilesystemBackend, SessionCollector, SessionManager},
+    webhook, Api, ApiError, Dispatcher,
+};
 use hyper::Error as HyperError;
-use std::{env, fmt};
+use std::{env, fmt, io::Error as IoError, time::Duration};
+use tempfile::tempdir;
+
+const SESSION_GC_PERIOD: Duration = Duration::from_secs(86400);
+const SESSION_LIFETIME: Duration = Duration::from_secs(43200);
 
 pub async fn run() -> Result<(), Error> {
     env_logger::init();
@@ -17,13 +25,24 @@ pub async fn run() -> Result<(), Error> {
         Some(path) => Config::from_file(path).await?,
         None => return Err(Error::ConfigPathMissing),
     };
+    let session_path = tempdir().map_err(Error::CreateSessionDirectory)?.into_path();
+    let session_backend = FilesystemBackend::new(session_path);
+    let session_manager = SessionManager::new(session_backend.clone());
     let api = Api::new(api_config)?;
     let mut dispatcher = Dispatcher::new(Context {
         api: api.clone(),
         chats,
+        session_manager,
     });
     dispatcher.add_handler(on_message);
     dispatcher.add_handler(on_callback_query);
+
+    tokio::spawn(async move {
+        SessionCollector::new(session_backend, SESSION_GC_PERIOD, SESSION_LIFETIME)
+            .run()
+            .await;
+    });
+
     match webhook_url {
         Some(WebhookUrl { address, path }) => {
             log::info!("Starting receiving updates via webhook: {}{}", address, path);
@@ -44,6 +63,7 @@ pub enum Error {
     Api(ApiError),
     Config(ConfigError),
     ConfigPathMissing,
+    CreateSessionDirectory(IoError),
     Webhook(HyperError),
 }
 
@@ -66,6 +86,7 @@ impl fmt::Display for Error {
             Api(err) => write!(out, "{}", err),
             Config(err) => write!(out, "{}", err),
             ConfigPathMissing => write!(out, "You need to provide a path to config"),
+            CreateSessionDirectory(err) => write!(out, "Failed to create session directory: {}", err),
             Webhook(err) => write!(out, "Webhook error: {}", err),
         }
     }

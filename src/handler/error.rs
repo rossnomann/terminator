@@ -1,12 +1,14 @@
 use crate::config::RenderQuestionError;
-use carapax::{types::InlineKeyboardError, ExecuteError};
+use carapax::{session::SessionError, types::InlineKeyboardError, ExecuteError};
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
 pub enum HandlerError {
     Execute(ExecuteError),
     InlineKeyboard(InlineKeyboardError),
+    LoadPermissions(SessionError),
     RenderQuestion(RenderQuestionError),
+    SavePermissions(SessionError),
 }
 
 impl From<ExecuteError> for HandlerError {
@@ -33,7 +35,9 @@ impl fmt::Display for HandlerError {
         match self {
             Execute(err) => write!(out, "failed to execute method: {}", err),
             InlineKeyboard(err) => write!(out, "can not build inline keyboard: {}", err),
+            LoadPermissions(err) => write!(out, "can not save chat member permissions: {}", err),
             RenderQuestion(err) => write!(out, "{}", err),
+            SavePermissions(err) => write!(out, "can not save chat member permissions: {}", err),
         }
     }
 }
@@ -44,7 +48,9 @@ impl Error for HandlerError {
         Some(match self {
             Execute(err) => err,
             InlineKeyboard(err) => err,
+            LoadPermissions(err) => err,
             RenderQuestion(err) => err,
+            SavePermissions(err) => err,
         })
     }
 }
