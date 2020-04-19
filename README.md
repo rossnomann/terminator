@@ -11,7 +11,7 @@ See configuration example below for more information.
 Download binary:
 
 ```
-$ curl -L https://github.com/rossnomann/terminator/releases/download/0.1.2/terminator-0.1.2_x86_64-linux-gnu --output terminator
+$ curl -L https://github.com/rossnomann/terminator/releases/download/0.1.3/terminator-0.1.3_x86_64-linux-gnu --output terminator
 $ chmod +x terminator
 ```
 
@@ -51,6 +51,10 @@ $ ./terminator config.yaml
 ```
 
 ## Changelog
+
+### 0.1.3 (19.04.2020)
+
+- Keep old permissions when user leaved from a chat.
 
 ### 0.1.2 (26.03.2020)
 

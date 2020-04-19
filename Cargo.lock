@@ -1469,7 +1469,7 @@ dependencies = [
 
 [[package]]
 name = "terminator"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "carapax",
  "env_logger",
